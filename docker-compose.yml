@@ -1,25 +1,24 @@
-version: '2'
+version: '3.2'
+
 services:
-  proxy:
-    image: ${REGISTRY_HOST}:5000/proxy:${PROXY_IMAGE_VERSION}
-    restart: always
+
+  nginx:
+    image: 192.168.1.145:5000/proxy:v0.2
+    #command:
     ports:
       - "80:80"
       - "443:443"
-    environment:
-      - "ETCD_HOST=${ETCD_HOST}"
-      - "IPNETCOM_ETCDHOSTS=${ETCD_HOSTS}"
-      - "affinity:container!=*proxy*"
-      - "constraint:node!=${NODE}" # Temporaly hardcoded until nginx server name gets configured properly
     networks:
       - middleware
-#    depends_on:
-#      - tcs
-    logging:
-      driver: gelf
-      options:
-        gelf-address: "udp://${LOGGING_HOST}"
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
 
 networks:
   middleware:
     driver: overlay
+    attachable: true
+
+
