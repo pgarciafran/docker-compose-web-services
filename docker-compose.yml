@@ -1,24 +1,45 @@
-version: '3.2'
-
+version: "3.3"
+   #Creates overlay trefik_proxy network. Include in the other web services compose-files as: external: true
 services:
-
-  nginx:
-    image: 192.168.1.145:5000/proxy:v0.2
-    #command:
+  traefik:
+    image: traefik:v2.0
+    restart: always
+    container_name: traefik
     ports:
       - "80:80"
+      - "8080:8080" # traefik dashboard
       - "443:443"
+    command:
+      - --api.insecure=true # set to 'false' on production
+      - --api.dashboard=true # see https://docs.traefik.io/v2.0/operations/dashboard/#secure-mode for how to secure the dashboard
+      - --api.debug=true # enable additional endpoints for debugging and profiling
+      - --log.level=DEBUG # debug while we get it working, for more levels/info see https://docs.traefik.io/observability/logs/
+      - --providers.docker=true
+      - --providers.docker.swarmMode=true
+      - --providers.docker.exposedbydefault=false
+      - --providers.docker.network=proxy
+      - --entrypoints.web.address=:80
+      - --entrypoints.web-secured.address=:443
+      - --certificatesresolvers.mytlschallenge.acme.httpChallenge.entrypoint=web
+      - --certificatesresolvers.mytlschallenge.acme.email=pedrogarciafranco@hotmail.com
+      - --certificatesresolvers.mytlschallenge.acme.storage=/letsencrypt/acme.json
+    volumes:
+      - letsencrypt:/letsencrypt
+      - /var/run/docker.sock:/var/run/docker.sock
     networks:
-      - middleware
+      - proxy
     deploy:
-      mode: replicated
-      replicas: 1
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.api.rule=Host(`traefik.secandsys.com`)"
+        - "traefik.http.routers.api.service=api@internal" # Let the dashboard access the traefik api
       placement:
-        constraints: [node.role == manager]
-
+        constraints: [node.role == manager] 
 networks:
-  middleware:
-    driver: overlay
-    attachable: true
+  proxy:
+     driver: overlay
+     attachable: true
 
+volumes:
+  letsencrypt:
 
