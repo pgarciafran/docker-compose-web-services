@@ -7,7 +7,7 @@ services:
     container_name: traefik
     ports:
       - "80:80"
-      - "8080:8080" # traefik dashboard
+    #  - "8080:8080" # traefik dashboard
       - "443:443"
     command:
       - --api.insecure=true # set to 'false' on production
@@ -42,4 +42,3 @@ networks:
 
 volumes:
   letsencrypt:
-
