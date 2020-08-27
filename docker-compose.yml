@@ -11,13 +11,13 @@ services:
       - "443:443"
     command:
       - --api.insecure=true # set to 'false' on production
-      - --api.dashboard=true # see https://docs.traefik.io/v2.0/operations/dashboard/#secure-mode for how to secure the dashboard
-      - --api.debug=true # enable additional endpoints for debugging and profiling
-      - --log.level=DEBUG # debug while we get it working, for more levels/info see https://docs.traefik.io/observability/logs/
+      - --api.dashboard=true 
+      - --api.debug=true 
+      - --log.level=DEBUG 
       - --providers.docker=true
       - --providers.docker.swarmMode=true
       - --providers.docker.exposedbydefault=false
-      - --providers.docker.network=proxy
+      - --providers.docker.network=traefik_proxy
       - --entrypoints.web.address=:80
       - --entrypoints.web-secured.address=:443
       - --certificatesresolvers.mytlschallenge.acme.httpChallenge.entrypoint=web
@@ -36,7 +36,7 @@ services:
       placement:
         constraints: [node.role == manager] 
 networks:
-  proxy:
+   proxy:
      driver: overlay
      attachable: true
 
